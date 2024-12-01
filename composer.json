@@ -1,0 +1,18 @@
+{
+    "name": "sk/aoc-2024",
+    "description": "Advent of Code 2024",
+    "autoload": {
+        "psr-4": {
+            "Sk\\Aoc2024\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "SKoletzko",
+            "email": "sebastian.koletzko@rub.de"
+        }
+    ],
+    "require": {
+        "pavelsterba/advent-of-code": "^0.5.0"
+    }
+}
