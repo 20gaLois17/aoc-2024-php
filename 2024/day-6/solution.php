@@ -6,6 +6,45 @@ class Solution extends AdventOfCode\Solution
     {
         $input = $this->input->load();
         $board = new Board(sizeof($input), strlen($input[0]));
+        $this->parseInput($input, $board);
+        while (true) {
+            if ($board->moveGuard()) {
+                continue;
+            }
+            break;
+        }
+
+        return $board->getUniqueGuardPositions();
+    }
+
+    public function second(): int
+    {
+        $input = $this->input->load();
+        $loops = 0;
+        for ($i = 0; $i < sizeof($input); $i++) {
+            for ($k = 0; $k < strlen($input[0]); $k++) {
+                $board = new Board(sizeof($input), strlen($input[0]));
+                $this->parseInput($input, $board);
+                if (!$board->hasObstacle($i, $k)) {
+                    $board->addObstacle($i, $k);
+                    while (true) {
+                        if ($board->closesCycle()) {
+                            $loops++;
+                        } else if ($board->moveGuard()) {
+                            continue;
+                        }
+                        $board->removeObstacle($i, $k);
+                        break;
+                    }
+                }
+            }
+        }
+
+        return $loops;
+    }
+
+    private function parseInput($input, &$board): void
+    {
         for ($i = 0; $i < sizeof($input); $i++) {
             for ($k = 0; $k < strlen($input[$i]); $k++) {
                 $symbol = $input[$i][$k];
@@ -28,20 +67,6 @@ class Solution extends AdventOfCode\Solution
                 }
             }
         }
-        while (true) {
-            if ($board->moveGuard()) {
-                continue;
-            }
-            break;
-        }
-
-        return $board->getUniqueGuardPositions();
-    }
-
-    public function second(): int
-    {
-        $input = $this->input->load();
-        return 0;
     }
 }
 
@@ -64,26 +89,45 @@ class Board {
     ) {
     }
 
-    public function setGuard(Guard $guard)
+    public function setGuard(Guard $guard): void
     {
         $this->guard = $guard;
-        $this->guardPositions["{$this->guard->getPosX()}:{$this->guard->getPosY()}"] = 1;
+        $this->guardPositions["{$this->guard->getPosition()[0]}:{$this->guard->getPosition()[1]}"] = $this->guard->getDirection();
     }
 
-    public function addObstacle(int $posX, int $posY)
+    public function getDimension(): array
+    {
+        return [
+            $this->rows,
+            $this->cols
+        ];
+    }
+
+    public function addObstacle(int $posX, int $posY): void
     {
         $this->obstacles["{$posX}:{$posY}"] = 1;
     }
 
-    public function addGuardPosition(int $posX, int $posY)
+    public function removeObstacle(int $posX, int $posY): void
     {
-        $this->guardPositions["{$posX}:{$posY}"] = 1;
+        unset($this->obstacles["{$posX}:{$posY}"]);
     }
 
-    public function hasObstacle(int $posX, int $posY)
+    public function addGuardPosition(int $posX, int $posY): void
+    {
+        $this->guardPositions["{$posX}:{$posY}"] = $this->guard->getDirection();
+    }
+
+    public function wasVisitedByGuard(int $posX, int $posY): bool
+    {
+        return array_key_exists("{$posX}:{$posY}", $this->guardPositions);
+    }
+
+    public function hasObstacle(int $posX, int $posY): bool
     {
         return array_key_exists("{$posX}:{$posY}", $this->obstacles);
     }
+
 
     public function moveGuard(): bool
     {
@@ -106,6 +150,17 @@ class Board {
         return true;
     }
 
+    public function closesCycle(): bool
+    {
+        $nextPosition = $this->guard->getNextPosition();
+        if ($this->wasVisitedByGuard(...$nextPosition)) {
+            if ($this->guard->getDirection() === $this->guardPositions["{$nextPosition[0]}:{$nextPosition[1]}"]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public function getUniqueGuardPositions(): int
     {
         return sizeof($this->guardPositions);
@@ -124,14 +179,17 @@ class Guard {
         $this->posY = $posY;
     }
 
-    public function getPosX(): int
+    public function getPosition(): array
     {
-        return $this->posX;
+        return [
+            $this->posX,
+            $this->posY
+        ];
     }
 
-    public function getPosY(): int
+    public function getDirection(): Directions
     {
-        return $this->posY;
+        return $this->direction;
     }
 
     public function turn(): void
