@@ -26,7 +26,6 @@ class Solution extends AdventOfCode\Solution
         $stones = explode(" ", $input[0]);
 
         foreach ($stones as $stone) {
-            // this takes way to long ...
             $result += $this->blinkRec($stone, 75);
         }
 
