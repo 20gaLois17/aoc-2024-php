@@ -63,13 +63,26 @@ class Solution extends AdventOfCode\Solution
         return $q1*$q2*$q3*$q4;
     }
 
-
-    public function second(): int
+    public function second(): void
     {
         $input = $this->input->load();
-        $result = 0;
-        return $result;
+        $input = $this->input->load();
+        $robots = $this->parseInput($input);
 
+        $i = 0;
+        while (true) {
+            $i++;
+            echo "------{$i}------" . PHP_EOL;
+            foreach ($robots as $robot) {
+                $robot->move();
+            }
+            // looking at the rendered output, there is one suspicous image which periodically
+            // appears every 103 iterations, starting with the 89th iteration
+            if (($i - 89) % 103 === 0) {
+                $this->drawBoard($robots);
+                readline();
+            }
+        }
     }
 
     private function parseInput(array $input): array
@@ -86,6 +99,27 @@ class Solution extends AdventOfCode\Solution
             $result[] = $robot;
         }
         return $result;
+    }
+
+    private function drawBoard(array $robots): void
+    {
+        for ($k = 0; $k < Robot::HEIGHT; $k++) {
+            for ($i = 0; $i < Robot::WIDTH; $i++) {
+                $hasRobot = false;
+                foreach ($robots as $robot) {
+                    if ($robot->getPosition() === [$i, $k]) {
+                        $hasRobot = true;
+                        break;
+                    }
+                }
+                if ($hasRobot) {
+                    echo "X";
+                } else {
+                    echo " ";
+                }
+            }
+            echo PHP_EOL;
+        }
     }
 }
 
