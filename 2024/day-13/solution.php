@@ -28,11 +28,9 @@ class Solution extends AdventOfCode\Solution
         $result = 0;
 
         $machines = $this->parseInput($input, true);
-        print_r($machines);
-        die();
 
         foreach ($machines as $machine) {
-            $solutions = $this->getSolutions(
+            $solutions = $this->solveLinearEquation(
                 $machine['v1'],
                 $machine['v2'],
                 $machine['target']
@@ -48,7 +46,6 @@ class Solution extends AdventOfCode\Solution
         $chunks = [];
         $lines = [];
         for ($i = 1; $i <= sizeof($input); $i++) {
-            echo $i . PHP_EOL;
             if ($i % 4 === 0) {
                 $chunks[] = $lines;
                 $lines = [];
@@ -83,7 +80,8 @@ class Solution extends AdventOfCode\Solution
     {
         $solutions = [];
 
-        for ($i = 0; $i <= max(ceil($target[0]/$v1[0]), ceil($target[1]/$v1[1])); $i++)
+        // takes too long for part two
+        for ($i = 0; $i <= 100; $i++)
         {
             $diffX = $target[0] - $i*$v1[0];
             $diffY = $target[1] - $i*$v1[1];
@@ -96,6 +94,34 @@ class Solution extends AdventOfCode\Solution
         }
         return $solutions;
     }
+
+    private function solveLinearEquation(array $v1, array $v2, array $target): array
+    {
+        $line1 = [$v1[0], $v2[0], $target[0]];
+        $line2 = [$v1[1], $v2[1], $target[1]];
+
+        $line1Mod = array_map(function($value) use ($line2) {
+            return $value * $line2[0];
+        }, $line1);
+
+        $line2Mod = array_map(function($value) use ($line1) {
+            return $value * $line1[0];
+        }, $line2);
+
+        $buttonB = ($line2Mod[2] - $line1Mod[2]) / ($line2Mod[1] - $line1Mod[1]);
+        if (!is_int($buttonB) || $buttonB < 0) {
+            return [];
+        }
+
+        $buttonA = ($target[0] - $v2[0]*$buttonB) / $v1[0];
+
+        if (!is_int($buttonA) || $buttonA < 0) {
+            return [];
+        }
+
+        return [[$buttonA, $buttonB]];
+    }
+
 
     private function getMinTokens(array $solutions)
     {
